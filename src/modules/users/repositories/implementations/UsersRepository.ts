@@ -1,8 +1,8 @@
-import { getRepository, Repository } from 'typeorm';
+import { getRepository, Repository } from "typeorm";
 
-import { IFindUserWithGamesDTO, IFindUserByFullNameDTO } from '../../dtos';
-import { User } from '../../entities/User';
-import { IUsersRepository } from '../IUsersRepository';
+import { IFindUserWithGamesDTO, IFindUserByFullNameDTO } from "../../dtos";
+import { User } from "../../entities/User";
+import { IUsersRepository } from "../IUsersRepository";
 
 export class UsersRepository implements IUsersRepository {
   private repository: Repository<User>;
@@ -14,17 +14,26 @@ export class UsersRepository implements IUsersRepository {
   async findUserWithGamesById({
     user_id,
   }: IFindUserWithGamesDTO): Promise<User> {
+    const games = await this.repository
+      .createQueryBuilder("games")
+      .leftJoinAndSelect("games.users", "users")
+      .where("games.id = :id", { id: `"${user_id}"` })
+      .getOneOrFail();
+    return games;
     // Complete usando ORM
   }
 
   async findAllUsersOrderedByFirstName(): Promise<User[]> {
-    return this.repository.query(); // Complete usando raw query
+    const sql = "SELECT * FROM users ORDER BY first_name ASC";
+    return this.repository.query(sql); // Complete usando raw query
   }
 
   async findUserByFullName({
     first_name,
     last_name,
   }: IFindUserByFullNameDTO): Promise<User[] | undefined> {
-    return this.repository.query(); // Complete usando raw query
+    const sql =
+      "SELECT * FROM users WHERE first_name ILIKE $1 AND last_name ILIKE $2";
+    return this.repository.query(sql); // Complete usando raw query
   }
 }
