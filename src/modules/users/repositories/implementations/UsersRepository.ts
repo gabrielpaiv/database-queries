@@ -15,9 +15,9 @@ export class UsersRepository implements IUsersRepository {
     user_id,
   }: IFindUserWithGamesDTO): Promise<User> {
     const games = await this.repository
-      .createQueryBuilder("games")
-      .leftJoinAndSelect("games.users", "users")
-      .where("games.id = :id", { id: `"${user_id}"` })
+      .createQueryBuilder("users")
+      .leftJoinAndSelect("users.games", "games")
+      .where("users.id = :id", { id: `"${user_id}"` })
       .getOneOrFail();
     return games;
     // Complete usando ORM
@@ -32,8 +32,7 @@ export class UsersRepository implements IUsersRepository {
     first_name,
     last_name,
   }: IFindUserByFullNameDTO): Promise<User[] | undefined> {
-    const sql =
-      "SELECT * FROM users WHERE first_name ILIKE $1 AND last_name ILIKE $2";
+    const sql = `SELECT * FROM users WHERE first_name ILIKE ${first_name} AND last_name ILIKE ${last_name}`;
     return this.repository.query(sql); // Complete usando raw query
   }
 }
